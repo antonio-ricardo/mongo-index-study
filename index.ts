@@ -1,51 +1,41 @@
 import express from "express";
-import 'dotenv/config'
-import { MongoClient } from "mongodb";
+import "dotenv/config";
+import mongoose from "mongoose";
 import bodyParser from "body-parser";
+import productModel from "./mongoose/product";
 
 const app = express();
 const port = 3000;
 app.use(bodyParser.json());
 
-const client = new MongoClient(
-  `mongodb://${process.env.MONGO_DB_URL_NAME}:${process.env.MONGO_DB_URL_PASSWORD}@mongodb:27017/`
-);
-
-
 app.post("/", async (req, res) => {
-  const db = client.db("toinDatabase");
-  const collection = db.collection("Products");
-
-  await collection.insertOne({
+  await productModel.create({
     name: req.body.name,
     value: req.body.value,
-    tag: 'CLOTHES'
-  })
+    tag: req.body.tag,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
-  const teste = await collection.findOne({ name: req.body.name });
-  return res.json({ message: teste ? teste.name : 'deu b.o' });
+  return res.json({ message: "criado com sucesso" });
 });
 
-app.get('/show', async(req, res) => {
-  const db = client.db("toinDatabase");
-  const collection = db.collection("Products");
+app.get("/show", async (req, res) => {
+  const products = await productModel.find();
 
-  const products = await collection.find({})
+  return res.json({ products });
+});
 
-  return res.json({products})
-})
+app.get("/clean", async (req, res) => {
+  await productModel.deleteMany({});
 
-app.get('/clean', async (req, res) => {
-  const db = client.db("toinDatabase");
-  const collection = db.collection("Products");
-
-  await collection.deleteMany({})
-
-  return res.json({message: 'collection limpa'})
-})
+  return res.json({ message: "productModel limpa" });
+});
 
 app.listen(port, async () => {
-  await client.connect();
+  await mongoose.connect(
+    `mongodb://${process.env.MONGO_DB_URL_NAME}:${process.env.MONGO_DB_URL_PASSWORD}@mongodb:27017/`
+  );
 
   console.log(`Rodando na porta ${port}`);
 });

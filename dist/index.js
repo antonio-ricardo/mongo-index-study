@@ -14,36 +14,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 require("dotenv/config");
-const mongodb_1 = require("mongodb");
+const mongoose_1 = __importDefault(require("mongoose"));
 const body_parser_1 = __importDefault(require("body-parser"));
+const product_1 = __importDefault(require("./mongoose/product"));
 const app = (0, express_1.default)();
 const port = 3000;
 app.use(body_parser_1.default.json());
-const client = new mongodb_1.MongoClient(`mongodb://${process.env.MONGO_DB_URL_NAME}:${process.env.MONGO_DB_URL_PASSWORD}@mongodb:27017/`);
 app.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const db = client.db("toinDatabase");
-    const collection = db.collection("Products");
-    yield collection.insertOne({
+    yield product_1.default.create({
         name: req.body.name,
         value: req.body.value,
-        tag: 'CLOTHES'
+        tag: "CLOTHES",
+        createdAt: new Date(),
+        updatedAt: new Date(),
     });
-    const teste = yield collection.findOne({ name: req.body.name });
-    return res.json({ message: teste ? teste.name : 'deu b.o' });
+    const teste = yield product_1.default.findOne({ name: req.body.name });
+    return res.json({ message: teste ? teste.name : "deu b.o" });
 }));
-app.get('/show', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const db = client.db("toinDatabase");
-    const collection = db.collection("Products");
-    const products = yield collection.find({});
-    return res.json({ products });
+app.get("/show", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const products = yield product_1.default.find();
+    const teste = yield product_1.default.findOne({ name: "toin" });
+    return res.json({ products, teste });
 }));
-app.get('/clean', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const db = client.db("toinDatabase");
-    const collection = db.collection("Products");
-    yield collection.deleteMany({});
-    return res.json({ message: 'collection limpa' });
+app.get("/clean", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    yield product_1.default.deleteMany({});
+    return res.json({ message: "productModel limpa" });
 }));
 app.listen(port, () => __awaiter(void 0, void 0, void 0, function* () {
-    yield client.connect();
+    yield mongoose_1.default.connect(`mongodb://${process.env.MONGO_DB_URL_NAME}:${process.env.MONGO_DB_URL_PASSWORD}@mongodb:27017/`);
     console.log(`Rodando na porta ${port}`);
 }));

@@ -5,7 +5,7 @@ services:
   app:
     build:
       context: ./
-    container_name: app
+    container_name: app-index
     tty: true
     ports:
       - "3000:3000"
@@ -19,7 +19,7 @@ services:
     image: mongo
     restart: always
     tty: true
-    container_name: mongodb
+    container_name: mongodb-index
     volumes:
       - ./mongodata:/data
     environment:
